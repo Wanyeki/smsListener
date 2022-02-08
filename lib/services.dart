@@ -24,6 +24,11 @@ postMessage(SmsMessage message, String from) async {
     Uri url = Uri.parse(info['url']);
     if (message.address == info["sender"] || info['sender'] == "any") {
       http.post(url, body: data);
+      return 'sent';
     }
-  } catch (e) {}
+  } catch (e) {
+    if (from == 'foreground') {
+      throw e;
+    }
+  }
 }

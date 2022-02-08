@@ -38,6 +38,7 @@ class _InputScreenState extends State<InputScreen> {
   final listenerFormKey = GlobalKey<FormState>();
   bool loading = false;
   String status = 'listening';
+  String body = '', address = '', message = '';
   Map savedData = {"url": '', "sender": ""};
   @override
   void initState() {
@@ -51,8 +52,29 @@ class _InputScreenState extends State<InputScreen> {
       savedData = data;
     });
     telephony.listenIncomingSms(
-        onNewMessage: (SmsMessage message) {
-          postMessage(message, "foreground");
+        onNewMessage: (SmsMessage mess) async {
+          try {
+            String messag = await postMessage(mess, "foreground");
+            setState(() {
+              body = mess.body ?? '';
+              address = mess.address ?? '';
+              message = messag;
+            });
+          } on dynamic catch (e) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Row(
+              children: [
+                const Icon(
+                  Icons.warning,
+                  color: Colors.orange,
+                ),
+                const SizedBox(
+                  width: 5,
+                ),
+                Text(e.message ?? 'an error occured')
+              ],
+            )));
+          }
         },
         onBackgroundMessage: backgrounMessageHandler);
   }
@@ -76,6 +98,10 @@ class _InputScreenState extends State<InputScreen> {
               ),
               Text(
                 status,
+                textAlign: TextAlign.center,
+              ),
+              Text(
+                message,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(
@@ -129,7 +155,18 @@ class _InputScreenState extends State<InputScreen> {
                   },
                   color: Colors.blue[400] ?? Colors.blue,
                   disabled: loading,
-                  text: "Update")
+                  text: "Update"),
+              const SizedBox(height: 30),
+              Text(
+                address,
+                style: const TextStyle(fontSize: 30),
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              Text(
+                body,
+              ),
             ],
           ),
         ),
